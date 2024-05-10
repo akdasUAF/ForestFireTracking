@@ -1,0 +1,11 @@
+{
+  version: 1,
+  mediaFileName: '1-Zenmuse_X4S_1.mp4',
+  cutSegments: [
+    {
+      start: 469.74115,
+      end: 571.856796,
+      name: '',
+    },
+  ],
+}
