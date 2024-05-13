@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forest Fire Tracking</title>
+    <script>
+        function handleForm(event) {
+            event.preventDefault();
+            var formData = new FormData();
+            formData.append('video', document.querySelector('input[type="file"]').files[0]);
+            console.log(formData); // DEBUG
+            for(var pair of formData.entries()) {
+                console.log(pair[0]+ ', ' + pair[1]); 
+            }
+
+            fetch('http://localhost:5000/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Received data:", data);  // Log for debugging... 
+                document.getElementById('links').innerHTML = `
+                    <h3>Choose a Video to View:</h3>
+                    <button onclick="showVideo1('${data.original}')">Original Fire Video</button>
+                    <br><br>
+                    <video id="videoPlayer1" controls width="500">
+                        Sorry, your browser does not support embedded videos.
+                    </video>
+
+                    <br><br><br>
+                    <button onclick="showVideo2('${data.yolov8}')">YOLOv8 Fire Tracking Video</button>
+                    <br><br><br>
+                    <video id="videoPlayer2" controls width="500">
+                        Sorry, your browser does not support embedded videos.
+                    </video>
+
+                    <br><br><br>
+                    <button onclick="showVideo3('${data.yolov5}')">YOLOv5 Fire Motion Video</button>
+                    <br><br>
+                    <video id="videoPlayer3" controls width="500">
+                        Sorry, your browser does not support embedded videos.
+                    </video>
+                `;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function showVideo1(src) {
+            var videoPlayer1 = document.getElementById('videoPlayer1');
+            videoPlayer1.src = src;
+            videoPlayer1.play();
+        }
+
+        function showVideo2(src) {
+            var videoPlayer2 = document.getElementById('videoPlayer2');
+            videoPlayer2.src = src;
+            videoPlayer2.play();
+        }
+
+        function showVideo3(src) {
+            var videoPlayer3 = document.getElementById('videoPlayer3');
+            videoPlayer3.src = src;
+            videoPlayer3.play();
+        }
+    </script>
+</head>
+<body>
+    <h1>Upload a video for processing</h1>
+    <h3>Notice: The backend might take some time to process the video. Thanks for your patience. </h3>
+    <form onsubmit="handleForm(event)" enctype="multipart/form-data">
+        <input type="file" name="video" required>
+        <button type="submit">Upload and Process</button>
+    </form>
+    <div id="links"></div>
+</body>
+</html>
