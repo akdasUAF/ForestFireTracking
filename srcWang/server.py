@@ -148,26 +148,19 @@ def index():
 def upload_video():
     try:
         video_file = request.files['video']
-        base_path = tempfile.mkdtemp()
-        original_video_path = os.path.join(base_path, "original.mp4")
+        base_path = os.path.join(os.getcwd(), 'videos')
+        original_video_path = os.path.join(base_path, video_file.filename)
         # print(original_video_path)
-        yolov5_output_path = os.path.join(base_path, "yolov5_output.avi")
-        yolov8_output_path = os.path.join(base_path, "yolov8_output.avi")
 
         video_file.save(original_video_path)
-        print("Saved the original video.")  # Debug print
-
-        process_video_yolov5(original_video_path, yolov5_output_path)
-        print("Processed the YOLOv5 video. yolov5_output_path: ", yolov5_output_path)  # Debug print
-
-        #process_video_yolov8("original.mp4", "yolov8_output.avi")
-        #print("Processed the YOLOv8 video.")  # Debug print
+        print("Saved the original video at:", original_video_path)  # Debug print
 
         # Respond with the paths to the processed videos
         response = jsonify({
-            "original": '/videos/original.mp4',
-            "yolov5": '/videos/yolov5_output.avi',
-            "yolov8": '/videos/yolov8_output.avi'
+            "status": "File uploaded successfully",
+            "filename": video_file.filename
+            # "yolov5": '/videos/' + os.path.basename(yolov5_output_path),
+            # "yolov8": '/videos/' + os.path.basename(yolov8_output_path)
         })
         response.headers.add('Access-Control-Allow-Origin', '*')  # Ensure CORS policies are not blocking requests
         return response
@@ -175,16 +168,24 @@ def upload_video():
         print("Error:", e)
         return jsonify({"error": str(e)}), 500
 
+@app.route('/process_yolov5/<filename>')
+def process_yolov5(filename):
+    input_path = os.path.join(os.getcwd(), 'videos', filename)
+    output_path = os.path.join(os.getcwd(), 'videos', f"yolov5_{filename}")
+    process_video_yolov5(input_path, output_path)
+    return send_from_directory('videos', f"yolov5_{filename}")
 
-@app.route('/videos/<path:filename>')
+@app.route('/process_yolov8/<filename>')
+def process_yolov8(filename):
+    input_path = os.path.join(os.getcwd(), 'videos', filename)
+    output_path = os.path.join(os.getcwd(), 'videos', f"yolov8_{filename}")
+    process_video_yolov8(input_path, output_path)
+    return send_from_directory('videos', f"yolov8_{filename}")
+
+@app.route('/videos/<filename>')
 def serve_video(filename):
-    try:
-        directory = os.path.join(os.getcwd(), 'videos')
-        logging.debug(f"Serving video from {directory}")
-        return send_from_directory(directory, filename)
-    except Exception as e:
-        logging.error(f"Failed to serve video: {e}")
-        raise
+    directory = os.path.join(os.getcwd(), 'videos')
+    return send_from_directory(directory, filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
