@@ -24,7 +24,9 @@
                 console.log(pair[0]+ ', ' + pair[1]); 
             }
 
-            fetch('http://localhost:5000/upload', {
+            const baseUrl = window.location.origin;
+
+            fetch(`${baseUrl}/upload`, {
                 method: 'POST',
                 body: formData,
             })
@@ -64,7 +66,8 @@
         function showVideo(type, filename, playerId) {
             var videoPlayer = document.getElementById(playerId);
             if (videoPlayer) {
-                var url = type === 'original' ? `http://localhost:5000/videos/${filename}` : `http://localhost:5000/process_${type}/${filename}`;
+                const baseUrl = window.location.origin;
+                var url = type === 'original' ? `${baseUrl}/videos/${filename}` : `${baseUrl}/process_${type}/${filename}`;
                 videoPlayer.src = url;
                 videoPlayer.load();
                 videoPlayer.play();
