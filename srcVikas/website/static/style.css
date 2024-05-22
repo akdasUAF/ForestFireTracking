@@ -55,11 +55,6 @@ form {
   background-color: #0056b3;
 }
 
-#output {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
 
 img[src=""] {
   display: none;
@@ -68,7 +63,7 @@ img[src=""] {
 img {
   display: block;
   width: 1000px;
-  margin: 10px 10px;
+  margin: 10px auto;
   height: auto;
   object-fit: cover;
   border-radius: 8px;

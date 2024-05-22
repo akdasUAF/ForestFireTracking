@@ -88,6 +88,8 @@ def process_video(file_path):
     yolo_cap = cv2.VideoCapture(file_path)
     motion_cap = cv2.VideoCapture(file_path)
 
+    fps = yolo_cap.get(cv2.CAP_PROP_FPS)
+
     ## yolo variables
     _, old_frame = motion_cap.read()
     yolo_area_frame = np.zeros_like(old_frame)
@@ -119,6 +121,7 @@ def process_video(file_path):
             _, buffer = cv2.imencode('.jpg', yolo_result_frame)
             img_str = base64.b64encode(buffer).decode('utf-8')
             # print("Emitting yolo frame")
+
             socketio.emit("yolo_frame", img_str)
 
     def run_motion():
@@ -178,30 +181,47 @@ def process_video(file_path):
     # speed_scaler = MinMaxScaler()
     # speed_normalized = speed_scaler.fit_transform(np.array(speed).reshape(-1, 1)).flatten()
 
+    yolo_frame_numbers = np.arange(len(areas))  # Assuming areas, area_growth, speed all have the same length
+    yolo_time_seconds = yolo_frame_numbers / fps
+
+    motion_frame_numbers = np.arange(len(angles))  # Assuming areas, area_growth, speed all have the same length
+    motion_time_seconds = motion_frame_numbers / fps
+
     # Plotting
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(15, 11))
 
-    plt.subplot(2, 2, 1)  # 2 rows, 2 columns, plot 1
-    sns.lineplot(data=areas, color='b', linewidth=1)
-    plt.ylabel('Area', fontsize=12)
+    # Plot for areas
+    plt.subplot(2, 2, 1)
+    sns.lineplot(x=yolo_time_seconds, y=areas, color='b', linewidth=1)
+    plt.ylabel('Area (pixels)', fontsize=12)
+    plt.xlabel('Time (seconds)', fontsize=12)
+    plt.title(f'Area (Min: {min(areas):.2f}, Max: {max(areas):.2f}, Mean: {np.mean(areas):.2f}, Dev: {np.std(areas):.2f})')
 
-    plt.subplot(2, 2, 3)  # 2 rows, 2 columns, plot 3
-    sns.lineplot(data=area_growth, color='r', linewidth=1)
-    plt.ylabel('Growth', fontsize=12)
+    # Plot for area growth
+    plt.subplot(2, 2, 3)
+    sns.lineplot(x=yolo_time_seconds, y=area_growth, color='r', linewidth=1)
+    plt.ylabel('Growth (pixels)', fontsize=12)
+    plt.xlabel('Time (seconds)', fontsize=12)
+    plt.title(f'Growth (Min: {min(area_growth):.2f}, Max: {max(area_growth):.2f}, Mean: {np.mean(area_growth):.2f}, Dev: {np.std(area_growth):.2f})')
 
-    plt.subplot(2, 2, 2)  # 2 rows, 2 columns, plot 2
-    sns.lineplot(data=speed, color='g', linewidth=1)
-    plt.ylabel('Speed', fontsize=12)
+    # Plot for speed
+    plt.subplot(2, 2, 2)
+    sns.lineplot(x=motion_time_seconds, y=speed, color='g', linewidth=1)
+    plt.ylabel('Speed (pixels)', fontsize=12)
+    plt.xlabel('Time (seconds)', fontsize=12)
+    plt.title(f'Speed (Min: {min(speed):.2f}, Max: {max(speed):.2f}, Mean: {np.mean(speed):.2f}, Dev: {np.std(speed):.2f})')
 
     # Plotting polar plot in the second column
-    plt.subplot(2, 2, 4, polar=True)  # 2 rows, 2 columns, plot 4
+    plt.subplot(2, 2, 4, polar=True)
     plt.hist(np.radians(angles), bins=30, color='skyblue', alpha=0.7)
     plt.xlabel('Direction', fontsize=12)
-    plt.gca().set_theta_direction(-1) 
+    plt.gca().set_theta_direction(-1)
     plt.gca().set_rticks([])
+    plt.title('Direction')
 
     # Optionally, adjust the spacing between subplots
     plt.tight_layout()
+    plt.subplots_adjust(hspace=0.4, wspace=0.4)
 
     plt.savefig(os.path.join(app.config['UPLOAD_FOLDER'], 'metrics.png'))
     socketio.emit('metrics')
