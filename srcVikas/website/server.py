@@ -3,7 +3,8 @@ from werkzeug.utils import secure_filename
 import os
 import cv2
 import torch
-from PIL import Image
+# from PIL import Image
+from ultralytics import YOLO
 import numpy as np
 from flask_socketio import SocketIO, emit
 from threading import Thread
@@ -20,20 +21,41 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 threads = [True, True]
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='../models/yoloFire.pt')
+# model = torch.hub.load('ultralytics/yolov5', 'custom', path='../models/yoloFire.pt')
+
+# Load the YOLOv8 model
+model = YOLO('../models/yoloNano.pt', verbose=False)
 
 def yolo(im, yolo_frame, size=640):
-    g = size / max(im.size)
-    im = im.resize((int(x * g) for x in im.size), Image.LANCZOS)
+    # g = size / max(im.size)
+    # im = im.resize((int(x * g) for x in im.size), Image.LANCZOS)
     results = model(im)
+    detections = results[0].obb.xywhr.cpu().numpy()
 
-    result_image = Image.fromarray(results.ims[0])
-    result_frame = np.array(result_image)
+    # result_image = Image.fromarray(results.ims[0])
+    # result_frame = np.array(result_image)
 
-    for box in results.xyxy[0]:
-        xmin, ymin, xmax, ymax, _, _ = box
-        cv2.rectangle(result_frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0), 2)
-        cv2.rectangle(yolo_frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), -1)
+    # for box in results.xyxy[0]:
+    #     xmin, ymin, xmax, ymax, _, _ = box
+    #     cv2.rectangle(result_frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0), 2)
+    #     cv2.rectangle(yolo_frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), -1)
+
+    for i in range(len(detections)):
+            x, y, w, h, r = detections[i]
+#             score = scores[i]
+#             class_idx = int(classes[i])
+
+            # Convert the center (x, y), width, height, and rotation angle into a box format
+            rect = ((x, y), (w, h), np.degrees(r))
+            box = cv2.boxPoints(rect)
+            box = np.intp(box)
+
+            # Draw the bounding box
+#             color = colors[class_idx % len(colors)]
+#             label = f"{labels[class_idx % len(labels)]}: {score:.2f}"
+            cv2.polylines(im, [box], True, (0,0,255), 2)
+            cv2.fillPoly(yolo_frame, [box.reshape((-1, 1, 2))], (0, 0, 255))
+#             cv2.putText(frame, label, (int(box[0][0]), int(box[0][1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     area = 0
     gray = cv2.cvtColor(yolo_frame, cv2.COLOR_BGR2GRAY)
@@ -43,7 +65,7 @@ def yolo(im, yolo_frame, size=640):
     for contour in contours:
         area += cv2.contourArea(contour)
 
-    return result_frame, yolo_frame, results, area
+    return im, yolo_frame, results, area
 
 def motion(motion_frame, prvs, new):
     flow = cv2.calcOpticalFlowFarneback(prvs, new, None, 0.5, 3, 15, 3, 5, 1.2, 0)
@@ -112,8 +134,8 @@ def process_video(file_path):
             if not ret:
                 break
 
-            frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            yolo_result_frame, yolo_frame, yolo_results, new_area = yolo(frame_pil, yolo_area_frame)
+            # frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            yolo_result_frame, yolo_frame, yolo_results, new_area = yolo(frame, yolo_area_frame)
             areas.append(new_area)
             area_growth.append(new_area - old_area)
             old_area = new_area
