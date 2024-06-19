@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import cv2
 import torch
-# from PIL import Image
+from PIL import Image
 from ultralytics import YOLO
 import numpy as np
 from flask_socketio import SocketIO, emit
@@ -19,21 +19,21 @@ socketio = SocketIO(app)
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+model = YOLO('../models/yoloNano.pt', verbose=False)
+
+# Load the YOLOv8 model
 threads = [True, True]
 
 # model = torch.hub.load('ultralytics/yolov5', 'custom', path='../models/yoloFire.pt')
 
-# Load the YOLOv8 model
-model = YOLO('../models/yoloNano.pt', verbose=False)
-
 def yolo(im, yolo_frame, size=640):
     # g = size / max(im.size)
     # im = im.resize((int(x * g) for x in im.size), Image.LANCZOS)
-    results = model(im)
+    results = model.predict(im)
     detections = results[0].obb.xywhr.cpu().numpy()
 
     # result_image = Image.fromarray(results.ims[0])
-    # result_frame = np.array(result_image)
+    result_frame = np.array(im)
 
     # for box in results.xyxy[0]:
     #     xmin, ymin, xmax, ymax, _, _ = box
@@ -53,7 +53,7 @@ def yolo(im, yolo_frame, size=640):
             # Draw the bounding box
 #             color = colors[class_idx % len(colors)]
 #             label = f"{labels[class_idx % len(labels)]}: {score:.2f}"
-            cv2.polylines(im, [box], True, (0,0,255), 2)
+            cv2.polylines(result_frame, [box], True, (255,0,0), 3)
             cv2.fillPoly(yolo_frame, [box.reshape((-1, 1, 2))], (0, 0, 255))
 #             cv2.putText(frame, label, (int(box[0][0]), int(box[0][1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
@@ -65,7 +65,8 @@ def yolo(im, yolo_frame, size=640):
     for contour in contours:
         area += cv2.contourArea(contour)
 
-    return im, yolo_frame, results, area
+    return cv2.cvtColor(result_frame, cv2.COLOR_RGB2BGR ), yolo_frame, results, area
+
 
 def motion(motion_frame, prvs, new):
     flow = cv2.calcOpticalFlowFarneback(prvs, new, None, 0.5, 3, 15, 3, 5, 1.2, 0)
@@ -74,6 +75,7 @@ def motion(motion_frame, prvs, new):
             fx, fy = flow[y, x]
             cv2.line(motion_frame, (x, y), (int(x + fx), int(y + fy)), [0, 0, 255], 1)
     return flow, motion_frame
+
 
 @socketio.on('stop_stream')
 def stop_stream():
@@ -110,7 +112,7 @@ def process_video(file_path):
     yolo_cap = cv2.VideoCapture(file_path)
     motion_cap = cv2.VideoCapture(file_path)
 
-    fps = yolo_cap.get(cv2.CAP_PROP_FPS)
+    fps = yolo_cap.get(cv2.CAP_PROP_FPS)//5
 
     ## yolo variables
     _, old_frame = motion_cap.read()
@@ -127,59 +129,71 @@ def process_video(file_path):
     angles = []
     speed = []
 
+    cnt = 0
+    motion_cnt = 0
+
     def run_yolo():
-        nonlocal old_area, yolo_area_frame
+        nonlocal old_area, yolo_area_frame, cnt
         while yolo_cap.isOpened() and threads[0]:
             ret, frame = yolo_cap.read()
             if not ret:
                 break
 
-            # frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            yolo_result_frame, yolo_frame, yolo_results, new_area = yolo(frame, yolo_area_frame)
-            areas.append(new_area)
-            area_growth.append(new_area - old_area)
-            old_area = new_area
+            cnt = cnt + 1
+            if cnt % 5 == 0:
+                cnt = 0
+                # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            _, buffer = cv2.imencode('.jpg', yolo_result_frame)
-            img_str = base64.b64encode(buffer).decode('utf-8')
-            # print("Emitting yolo frame")
+                frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                yolo_result_frame, yolo_frame, yolo_results, new_area = yolo(frame_pil, yolo_area_frame)
+                areas.append(new_area)
+                area_growth.append(new_area - old_area)
+                old_area = new_area
 
-            socketio.emit("yolo_frame", img_str)
+                _, buffer = cv2.imencode('.jpg', yolo_result_frame)
+                img_str = base64.b64encode(buffer).decode('utf-8')
+                # print("Emitting yolo frame")
+
+                socketio.emit("yolo_frame", img_str)
 
     def run_motion():
-        nonlocal prvs, motion_frame
+        nonlocal prvs, motion_frame, motion_cnt
         while motion_cap.isOpened() and threads[1]:
             ret, new_frame = motion_cap.read()
             if not ret:
                 break
 
-            new = cv2.cvtColor(new_frame, cv2.COLOR_BGR2GRAY)
-            flow, motion_frame = motion(motion_frame, prvs, new)
-            prvs = new
+            motion_cnt = motion_cnt + 1
+            if motion_cnt % 5 == 0:
+                motion_cnt = 0
 
-            avgx.append(np.mean(flow[..., 0]))
-            avgy.append(np.mean(flow[..., 1]))
+                new = cv2.cvtColor(new_frame, cv2.COLOR_BGR2GRAY)
+                flow, motion_frame = motion(motion_frame, prvs, new)
+                prvs = new
+
+                avgx.append(np.mean(flow[..., 0]))
+                avgy.append(np.mean(flow[..., 1]))
 
 
-            if len(avgx) > 30: 
-                avg_fx = np.mean(avgx)
-                avg_fy = np.mean(avgy)
-                avg_direction_angle = np.arctan2(avg_fy, avg_fx)
-                avg_direction_degrees = np.degrees(avg_direction_angle)
-                
-                avg_speed = np.sqrt(avg_fx**2 + avg_fy**2)
-                
-                speed.append(avg_speed)
-                
-                angles.append(avg_direction_degrees)
+                if len(avgx) > 6: 
+                    avg_fx = np.mean(avgx)
+                    avg_fy = np.mean(avgy)
+                    avg_direction_angle = np.arctan2(avg_fy, avg_fx)
+                    avg_direction_degrees = np.degrees(avg_direction_angle)
+                    
+                    avg_speed = np.sqrt(avg_fx**2 + avg_fy**2)
+                    
+                    speed.append(avg_speed)
+                    
+                    angles.append(avg_direction_degrees)
 
-                avgx.pop()
-                avgy.pop()
+                    avgx.pop()
+                    avgy.pop()
 
-            _, buffer = cv2.imencode('.jpg', motion_frame)
-            img_str = base64.b64encode(buffer).decode('utf-8')
-            # print('Emitting motion frame')
-            socketio.emit('motion_frame', img_str)
+                _, buffer = cv2.imencode('.jpg', motion_frame)
+                img_str = base64.b64encode(buffer).decode('utf-8')
+                # print('Emitting motion frame')
+                socketio.emit('motion_frame', img_str)
 
     yolo_thread = Thread(target=run_yolo)
     motion_thread = Thread(target=run_motion)
@@ -222,7 +236,7 @@ def process_video(file_path):
     # Plot for area growth
     plt.subplot(2, 2, 3)
     sns.lineplot(x=yolo_time_seconds, y=area_growth, color='r', linewidth=1)
-    plt.ylabel('Growth (pixels)', fontsize=12)
+    plt.ylabel('Growth Rate (pixels)', fontsize=12)
     plt.xlabel('Time (seconds)', fontsize=12)
     plt.title(f'Growth (Min: {min(area_growth):.2f}, Max: {max(area_growth):.2f}, Mean: {np.mean(area_growth):.2f}, Dev: {np.std(area_growth):.2f})')
 
