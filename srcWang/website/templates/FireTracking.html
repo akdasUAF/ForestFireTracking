@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forest Fire Detection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Forest Fire Tracking</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="video" id="videoInput" accept="video/*">
+      <button type="button" id="uploadBtn">Upload Video</button>
+      <button type="button" id="stopBtn">Stop processing</button>
+    </form>
+    <img id="yoloOutput" alt="YOLO Output">
+    <img id="motionOutput" alt="Motion Detection Output">
+    <img id="metrics" alt="Fire Metrics">
+  </img>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+  <script src="/static/script.js"></script>
+</body>
+</html>

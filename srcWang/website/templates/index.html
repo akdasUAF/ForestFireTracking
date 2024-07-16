@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forest Fire Detection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Forest Fire Analysis</h1>
+    <div class="row">
+      <div class="column" style="background-color:#85b7f5;">
+        <h2>Forest Fire Detection</h2>
+        <br>
+        <a href="http://137.229.25.190:8000/">
+          <img src="{{ url_for('static', filename='images/FireDetection.png') }}" class="fire-detection" alt="FireDetection" ></a>
+      </div>
+      <div class="column" style="background-color:#9fccf7;">
+        <h2>Forest Fire Tracking</h2>
+        <br>
+        <a href="{{ url_for('fire_tracking') }}">
+          <img src="{{ url_for('static', filename='images/FireTracking.png') }}" class="fire-tracking" alt="FireTracking" ></a>
+      </div>
+      <div class="column" style="background-color:#b4d1ec;">
+        <h2>Forest Fire Smoke Tracking (under construction)</h2>
+        <img src="{{ url_for('static', filename='images/SmokeTracking.png') }}" class="smoke-tracking" alt="SmokeTracking" ></a>
+      </div>
+    </div>
+  </img>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+  <script src="/static/script.js"></script>
+</body>
+</html>
