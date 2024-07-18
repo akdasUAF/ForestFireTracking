@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model Metrics</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .info {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Model Metrics</h1>
+    <div>
+      <label for="confidence">Select Confidence Interval:</label>
+      <select id="confidence" onchange="updateTable()">
+        <option value="0.1">0.1</option>
+        <option value="0.2">0.2</option>
+        <option value="0.4">0.4</option>
+      </select>
+    </div>
+    <div>
+      <label for="size">Select Model Size:</label>
+      <select id="size" onchange="updateTable()">
+        <option value="small">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+      </select>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>p@50</th>
+          <th>r@50</th>
+          <th>mAP@50</th>
+          <th>mAP@50-95</th>
+        </tr>
+      </thead>
+      <tbody id="metrics-table">
+        <tr>
+          <td>YOLOv8n</td>
+          <td id="yolov8n-p"></td>
+          <td id="yolov8n-r"></td>
+          <td id="yolov8n-map50"></td>
+          <td id="yolov8n-map5095"></td>
+        </tr>
+        <tr>
+          <td>YOLOv8s</td>
+          <td id="yolov8s-p"></td>
+          <td id="yolov8s-r"></td>
+          <td id="yolov8s-map50"></td>
+          <td id="yolov8s-map5095"></td>
+        </tr>
+        <tr>
+          <td>YOLOv8m</td>
+          <td id="yolov8m-p"></td>
+          <td id="yolov8m-r"></td>
+          <td id="yolov8m-map50"></td>
+          <td id="yolov8m-map5095"></td>
+        </tr>
+        <tr>
+          <td>YOLOv8l</td>
+          <td id="yolov8l-p"></td>
+          <td id="yolov8l-r"></td>
+          <td id="yolov8l-map50"></td>
+          <td id="yolov8l-map5095"></td>
+        </tr>
+        <tr>
+          <td>YOLOv8x</td>
+          <td id="yolov8x-p"></td>
+          <td id="yolov8x-r"></td>
+          <td id="yolov8x-map50"></td>
+          <td id="yolov8x-map5095"></td>
+        </tr>
+        <tr>
+          <td>Detectron2 R50-FPN</td>
+          <td id="detectron2-r50-fpn-p"></td>
+          <td id="detectron2-r50-fpn-r"></td>
+          <td id="detectron2-r50-fpn-map50"></td>
+          <td id="detectron2-r50-fpn-map5095"></td>
+        </tr>
+        <tr>
+          <td>Detectron2 R101-FPN</td>
+          <td id="detectron2-r101-fpn-p"></td>
+          <td id="detectron2-r101-fpn-r"></td>
+          <td id="detectron2-r101-fpn-map50"></td>
+          <td id="detectron2-r101-fpn-map5095"></td>
+        </tr>
+        <tr>
+          <td>Detectron2 X101-FPN</td>
+          <td id="detectron2-x101-fpn-p"></td>
+          <td id="detectron2-x101-fpn-r"></td>
+          <td id="detectron2-x101-fpn-map50"></td>
+          <td id="detectron2-x101-fpn-map5095"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info">
+      <h2>Metric Information</h2>
+      <p>
+        <strong>p@50:</strong> Precision at 50% IoU threshold. Measures the
+        accuracy of the positive predictions.
+      </p>
+      <p>
+        <strong>r@50:</strong> Recall at 50% IoU threshold. Measures the ability
+        to find all relevant instances.
+      </p>
+      <p>
+        <strong>mAP@50:</strong> Mean Average Precision at 50% IoU threshold.
+        Average precision across all classes.
+      </p>
+      <p>
+        <strong>mAP@50-95:</strong> Mean Average Precision across IoU thresholds
+        from 50% to 95%. Provides a more comprehensive evaluation.
+      </p>
+    </div>
+
+    <script>
+      const metrics = {
+        small: {
+          0.1: {
+            yolov8n: { p: 0.75, r: 0.7, map50: 0.72, map5095: 0.65 },
+            yolov8s: { p: 0.78, r: 0.73, map50: 0.75, map5095: 0.68 },
+            yolov8m: { p: 0.8, r: 0.75, map50: 0.77, map5095: 0.7 },
+            yolov8l: { p: 0.82, r: 0.77, map50: 0.79, map5095: 0.72 },
+            yolov8x: { p: 0.84, r: 0.79, map50: 0.81, map5095: 0.74 },
+            "detectron2-r50-fpn": {
+              p: 0.7,
+              r: 0.65,
+              map50: 0.68,
+              map5095: 0.6,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.72,
+              r: 0.67,
+              map50: 0.7,
+              map5095: 0.62,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.74,
+              r: 0.69,
+              map50: 0.72,
+              map5095: 0.64,
+            },
+          },
+          0.2: {
+            yolov8n: { p: 0.85, r: 0.8, map50: 0.82, map5095: 0.75 },
+            yolov8s: { p: 0.88, r: 0.83, map50: 0.85, map5095: 0.78 },
+            yolov8m: { p: 0.9, r: 0.85, map50: 0.87, map5095: 0.8 },
+            yolov8l: { p: 0.92, r: 0.87, map50: 0.89, map5095: 0.82 },
+            yolov8x: { p: 0.94, r: 0.89, map50: 0.91, map5095: 0.85 },
+            "detectron2-r50-fpn": {
+              p: 0.8,
+              r: 0.75,
+              map50: 0.78,
+              map5095: 0.7,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.82,
+              r: 0.77,
+              map50: 0.8,
+              map5095: 0.72,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.84,
+              r: 0.79,
+              map50: 0.82,
+              map5095: 0.74,
+            },
+          },
+          0.4: {
+            yolov8n: { p: 0.95, r: 0.9, map50: 0.92, map5095: 0.85 },
+            yolov8s: { p: 0.96, r: 0.91, map50: 0.93, map5095: 0.86 },
+            yolov8m: { p: 0.97, r: 0.92, map50: 0.94, map5095: 0.87 },
+            yolov8l: { p: 0.98, r: 0.93, map50: 0.95, map5095: 0.88 },
+            yolov8x: { p: 0.99, r: 0.94, map50: 0.96, map5095: 0.89 },
+            "detectron2-r50-fpn": {
+              p: 0.9,
+              r: 0.85,
+              map50: 0.88,
+              map5095: 0.8,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.92,
+              r: 0.87,
+              map50: 0.9,
+              map5095: 0.82,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.94,
+              r: 0.89,
+              map50: 0.92,
+              map5095: 0.84,
+            },
+          },
+        },
+        medium: {
+          0.1: {
+            yolov8n: { p: 0.76, r: 0.71, map50: 0.73, map5095: 0.66 },
+            yolov8s: { p: 0.79, r: 0.74, map50: 0.76, map5095: 0.69 },
+            yolov8m: { p: 0.81, r: 0.76, map50: 0.78, map5095: 0.71 },
+            yolov8l: { p: 0.83, r: 0.78, map50: 0.8, map5095: 0.73 },
+            yolov8x: { p: 0.85, r: 0.8, map50: 0.82, map5095: 0.75 },
+            "detectron2-r50-fpn": {
+              p: 0.71,
+              r: 0.66,
+              map50: 0.69,
+              map5095: 0.61,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.73,
+              r: 0.68,
+              map50: 0.71,
+              map5095: 0.63,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.75,
+              r: 0.7,
+              map50: 0.73,
+              map5095: 0.65,
+            },
+          },
+          0.2: {
+            yolov8n: { p: 0.86, r: 0.81, map50: 0.83, map5095: 0.76 },
+            yolov8s: { p: 0.89, r: 0.84, map50: 0.86, map5095: 0.79 },
+            yolov8m: { p: 0.91, r: 0.86, map50: 0.88, map5095: 0.81 },
+            yolov8l: { p: 0.93, r: 0.88, map50: 0.9, map5095: 0.83 },
+            yolov8x: { p: 0.95, r: 0.9, map50: 0.92, map5095: 0.85 },
+            "detectron2-r50-fpn": {
+              p: 0.81,
+              r: 0.76,
+              map50: 0.79,
+              map5095: 0.71,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.83,
+              r: 0.78,
+              map50: 0.81,
+              map5095: 0.73,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.85,
+              r: 0.8,
+              map50: 0.83,
+              map5095: 0.75,
+            },
+          },
+          0.4: {
+            yolov8n: { p: 0.96, r: 0.91, map50: 0.93, map5095: 0.86 },
+            yolov8s: { p: 0.97, r: 0.92, map50: 0.94, map5095: 0.87 },
+            yolov8m: { p: 0.98, r: 0.93, map50: 0.95, map5095: 0.88 },
+            yolov8l: { p: 0.99, r: 0.94, map50: 0.96, map5095: 0.89 },
+            yolov8x: { p: 1.0, r: 0.95, map50: 0.97, map5095: 0.9 },
+            "detectron2-r50-fpn": {
+              p: 0.91,
+              r: 0.86,
+              map50: 0.89,
+              map5095: 0.81,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.93,
+              r: 0.88,
+              map50: 0.91,
+              map5095: 0.83,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.95,
+              r: 0.9,
+              map50: 0.93,
+              map5095: 0.85,
+            },
+          },
+        },
+        large: {
+          0.1: {
+            yolov8n: { p: 0.77, r: 0.72, map50: 0.74, map5095: 0.67 },
+            yolov8s: { p: 0.8, r: 0.75, map50: 0.77, map5095: 0.7 },
+            yolov8m: { p: 0.82, r: 0.77, map50: 0.79, map5095: 0.72 },
+            yolov8l: { p: 0.84, r: 0.79, map50: 0.81, map5095: 0.74 },
+            yolov8x: { p: 0.86, r: 0.81, map50: 0.83, map5095: 0.76 },
+            "detectron2-r50-fpn": {
+              p: 0.72,
+              r: 0.67,
+              map50: 0.7,
+              map5095: 0.62,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.74,
+              r: 0.69,
+              map50: 0.72,
+              map5095: 0.64,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.76,
+              r: 0.71,
+              map50: 0.74,
+              map5095: 0.66,
+            },
+          },
+          0.2: {
+            yolov8n: { p: 0.87, r: 0.82, map50: 0.84, map5095: 0.77 },
+            yolov8s: { p: 0.9, r: 0.85, map50: 0.87, map5095: 0.8 },
+            yolov8m: { p: 0.92, r: 0.87, map50: 0.89, map5095: 0.82 },
+            yolov8l: { p: 0.94, r: 0.89, map50: 0.91, map5095: 0.84 },
+            yolov8x: { p: 0.96, r: 0.91, map50: 0.93, map5095: 0.86 },
+            "detectron2-r50-fpn": {
+              p: 0.82,
+              r: 0.77,
+              map50: 0.8,
+              map5095: 0.72,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.84,
+              r: 0.79,
+              map50: 0.82,
+              map5095: 0.74,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.86,
+              r: 0.81,
+              map50: 0.84,
+              map5095: 0.76,
+            },
+          },
+          0.4: {
+            yolov8n: { p: 0.97, r: 0.92, map50: 0.94, map5095: 0.87 },
+            yolov8s: { p: 0.98, r: 0.93, map50: 0.95, map5095: 0.88 },
+            yolov8m: { p: 0.99, r: 0.94, map50: 0.96, map5095: 0.89 },
+            yolov8l: { p: 1.0, r: 0.95, map50: 0.97, map5095: 0.9 },
+            yolov8x: { p: 1.01, r: 0.96, map50: 0.98, map5095: 0.91 },
+            "detectron2-r50-fpn": {
+              p: 0.92,
+              r: 0.87,
+              map50: 0.9,
+              map5095: 0.82,
+            },
+            "detectron2-r101-fpn": {
+              p: 0.94,
+              r: 0.89,
+              map50: 0.92,
+              map5095: 0.84,
+            },
+            "detectron2-x101-fpn": {
+              p: 0.96,
+              r: 0.91,
+              map50: 0.94,
+              map5095: 0.86,
+            },
+          },
+        },
+      };
+
+      function updateTable() {
+        const confidence = document.getElementById("confidence").value;
+        const size = document.getElementById("size").value;
+        const tableData = metrics[size][confidence];
+
+        for (const model in tableData) {
+          document.getElementById(`${model}-p`).innerText = tableData[model].p;
+          document.getElementById(`${model}-r`).innerText = tableData[model].r;
+          document.getElementById(`${model}-map50`).innerText =
+            tableData[model].map50;
+          document.getElementById(`${model}-map5095`).innerText =
+            tableData[model].map5095;
+        }
+      }
+
+      // Initialize table with default confidence interval and size
+      document.addEventListener("DOMContentLoaded", function () {
+        updateTable();
+      });
+    </script>
+  </body>
+</html>

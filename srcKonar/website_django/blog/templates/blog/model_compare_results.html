@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model Compare Results</title>
+  </head>
+  <body>
+    <h1>Model Comparison Results for size: {{ size }}</h1>
+    <h2>Input File: {{ input_file }}</h2>
+
+    <div>
+      {% for file in output_files %}
+      <div style="margin-bottom: 20px">
+        <h3>Model: {{ file.model_type }}</h3>
+        <img src="{{ file.url }}" alt="Result Image" style="max-width: 100%" />
+      </div>
+      {% endfor %}
+    </div>
+  </body>
+</html>

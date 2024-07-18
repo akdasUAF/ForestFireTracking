@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Try Demo</title>
+  </head>
+  <body>
+    <h1>Model Compare</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div>
+        <label for="id_size">Model Size:</label>
+        <select id="id_size" name="size">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+      <div id="small_text" style="display: none">
+        <p>
+          Small models are faster but less accurate. Suitable for real-time
+          applications.
+        </p>
+      </div>
+      <div id="medium_text" style="display: none">
+        <p>
+          Medium models offer a balance between speed and accuracy. Suitable for
+          general use.
+        </p>
+      </div>
+      <div id="large_text" style="display: none">
+        <p>
+          Large models are more accurate but slower. Suitable for applications
+          where accuracy is critical.
+        </p>
+      </div>
+      {% comment %}
+      <div>
+        <label for="id_yolo_model">YOLO Model:</label>
+        <select id="id_yolo_model" name="model_type">
+          <!-- Options will be populated by JavaScript -->
+        </select>
+      </div>
+      {% endcomment %}
+      <div>
+        <label for="id_input_file">Upload Image or Video:</label>
+        <input type="file" name="input_file" id="id_input_file" />
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+    {% if form.errors %}
+    <div class="errors">
+      <ul>
+        {% for field in form %} {% for error in field.errors %}
+        <li>{{ error }}</li>
+        {% endfor %} {% endfor %} {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <script>
+            document
+              .getElementById("id_size")
+              .addEventListener("change", function () {
+                var size = this.value;
+                {% comment %} var yoloModelSelect = document.getElementById("id_yolo_model"); {% endcomment %}
+                {% comment %} yoloModelSelect.innerHTML = ""; {% endcomment %}
+      {% comment %}
+                var models = {
+                  small: ["yolov8n.pt", "yolov8s_obb.pt", "yolov8n_obb.pt"],
+                  medium: ["", ""],
+                  large: ["", ""],
+              }; {% endcomment %}
+
+                {% comment %} models[size].forEach(function (model) {
+                  var option = document.createElement("option");
+                  option.value = model;
+                  option.text = model;
+                  yoloModelSelect.appendChild(option);
+                }); {% endcomment %}
+
+                // Show or hide text based on the selected size
+                document.getElementById("small_text").style.display =
+                  size === "small" ? "block" : "none";
+                document.getElementById("medium_text").style.display =
+                  size === "medium" ? "block" : "none";
+                document.getElementById("large_text").style.display =
+                  size === "large" ? "block" : "none";
+              });
+
+            // Trigger change event to populate the YOLO model dropdown and show text on page load
+            document.getElementById("id_size").dispatchEvent(new Event("change"));
+    </script>
+  </body>
+</html>

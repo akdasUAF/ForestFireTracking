@@ -1,0 +1,31 @@
+{% extends "blog/base.html" %} {% block content %} {% load static %}
+<style>
+  .image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Adjust as needed */
+  }
+
+  .image-container img {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+
+<div class="navbar">
+  <a href="{% url 'model_specification' %}">Model Metrics</a>
+  <a href="{% url 'try_demo' %}">Single Models</a>
+  <a href="{% url 'model_compare' %}">Multiple Model Comparison</a>
+</div>
+
+{% comment %} {% for post in posts %}
+<h1>{{ post.title }}</h1>
+<p>BY {{ post.author }} on {{ post.date_posted }}</p>
+<p>{{ post.content }}</p>
+{% endfor %} {% endcomment %}
+
+<div class="image-container">
+  <img src="{% static 'blog/images/fire_Meme.jpg' %}" alt="My Image" />
+</div>
+{% endblock content %}
