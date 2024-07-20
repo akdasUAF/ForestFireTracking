@@ -1,4 +1,6 @@
 $(document).ready(function () {
+
+  
   $("#uploadBtn").on("click", function (event) {
     event.preventDefault();
     var formData = new FormData(document.getElementById("uploadForm"));
@@ -27,12 +29,13 @@ $(document).ready(function () {
     });
   });
 
+  var socket = io.connect();
+  
   $("#stopBtn").on("click", function (event) {
     event.preventDefault();
     socket.emit("stop_stream");
   });
 
-  var socket = io.connect();
 
   socket.on("yolo_frame", function (data) {
     document.getElementById("yoloOutput").src = "data:image/jpg;base64," + data;
