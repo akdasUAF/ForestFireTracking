@@ -27,6 +27,14 @@ def stop_stream():
 def index():
     return render_template('index.html')
 
+@app.route('/upload')
+def upload():
+    return render_template('upload.html')
+
+@app.route('/models')
+def models():
+    return render_template('models.html')
+
 @app.route('/upload', methods=['POST'])
 def handle_upload():
     if 'video' not in request.files:

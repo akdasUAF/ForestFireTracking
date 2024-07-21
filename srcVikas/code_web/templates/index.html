@@ -1,38 +1,21 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forest Fire Management</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
-  </head>
-  <body>
-    <h1>Forest Fire Management</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="video">Upload Video:</label>
-        <input type="file" id="video" name="video" accept="video/*" />
-        <label for="sizeFactor">Frame Size Factor:</label>
-        <input type="number" id="sizeFactor" name="sizeFactor" />
-      </div>
-      <div class="form-group">
-        <label for="cameraStable">Is the camera stable?</label>
-        <input type="checkbox" id="cameraStable" name="cameraStable" />
-        <label for="runYolo">Run YOLO detection?</label>
-        <input type="checkbox" id="runYolo" name="runYolo" />
-      </div>
-      <div class="form-group">
-        <button type="button" id="uploadBtn">Upload Video</button>
-        <button type="button" id="stopBtn">Stop Processing</button>
-      </div>
-    </form>
-    <div id="videoFrames">
-      <img id="stableFrames" alt="Motion" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card" onclick="window.location.href='/upload'">
+            <h2>Forest Fire Management</h2>
+            <p>Detect and manage forest fires in real-time.</p>
+        </div>
+        <div class="card" onclick="window.location.href='/models'">
+            <h2>Model Training Information</h2>
+            <p>View and sort training information of various models.</p>
+        </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-  </body>
+</body>
 </html>

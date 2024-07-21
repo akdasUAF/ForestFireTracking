@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Model Training Information</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    
+  </head>
+  <body>
+    <div class="container">
+      <h1>Model Training Information</h1>
+      <table id="modelTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">Model</th>
+            <th onclick="sortTable(1)">Precision</th>
+            <th onclick="sortTable(2)">Recall</th>
+            <th onclick="sortTable(3)">mAP@50</th>
+            <th onclick="sortTable(4)">mAP@50-95</th>
+            <th onclick="sortTable(5)">IOU</th>
+            <th onclick="sortTable(6)">No of Epochs</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        var modelDataUrl = "{{ url_for('static', filename='model_data.json') }}";
+    </script>
+  </body>
+</html>
