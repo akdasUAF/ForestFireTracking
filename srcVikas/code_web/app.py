@@ -101,14 +101,14 @@ def process_stable_camera(video_path):
         curr, smoke_frame = smoke_flow(im, prev, smoke_mask, wind_dir)
         prev = curr
 
-        # f_mask = cv2.cvtColor(fire_mask, cv2.COLOR_GRAY2BGR)
-        # s_mask = cv2.cvtColor(smoke_mask, cv2.COLOR_GRAY2BGR)
+        f_mask = cv2.cvtColor(fire_mask, cv2.COLOR_GRAY2BGR)
+        s_mask = cv2.cvtColor(smoke_mask, cv2.COLOR_GRAY2BGR)
 
-        row1 = np.hstack((im, contour_im))  
-        # row2 = np.hstack((f_mask, s_mask))
-        row3 = np.hstack((fire_frame, smoke_frame))
+        row1 = np.hstack((im, f_mask))  
+        row2 = np.hstack((contour_im, fire_frame))
+        row3 = np.hstack((s_mask, smoke_frame))
 
-        final_frame = np.vstack((row1, row3))
+        final_frame = np.vstack((row1, row2, row3))
         # print(final_frame.shape)
 
         _, buffer = cv2.imencode('.jpg', final_frame)
@@ -121,7 +121,32 @@ def process_stable_camera(video_path):
     cap.release()
 
 def process_yolo_detection(video_path):
-    run_yolo(video_path)
+    global size_factor
+
+    cap = cv2.VideoCapture(video_path)
+    _, first_frame = cap.read()
+    height, width = first_frame.shape[:2]
+    new_width = width // size_factor
+    new_height = height // size_factor
+
+
+    while cap.isOpened() and threads:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        im = cv2.resize(frame, (new_width, new_height))
+
+        yolo_frame = run_yolo(im)
+
+        _, buffer = cv2.imencode('.jpg', yolo_frame)
+        img_str = base64.b64encode(buffer).decode('utf-8')
+
+        socketio.emit('yolo_update', img_str)
+
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
+    cap.release()
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

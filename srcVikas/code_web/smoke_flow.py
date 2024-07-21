@@ -34,7 +34,7 @@ def smoke_flow(image, prev, smoke_mask, wind_dir):
                 fx, fy = flow[y, x]
                 flow_magnitude = np.sqrt(fx**2 + fy**2)
                 
-                if flow_magnitude > 0.5:
+                if flow_magnitude > 0.2:
                     avgx.append(fx)
                     avgy.append(fy)
 
@@ -48,7 +48,7 @@ def smoke_flow(image, prev, smoke_mask, wind_dir):
         avg_direction = np.nanmean(wind_dir)
         wind_dir.pop(0)
         
-        cv2.putText(smoke_frame, f'Wind Direction: {avg_direction:.2f}', (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 1, lineType=cv2.LINE_AA)
+        cv2.putText(smoke_frame, f'Wind Direction: {avg_direction:.2f}', (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 1, cv2.LINE_AA)
         
     
     return curr, smoke_frame

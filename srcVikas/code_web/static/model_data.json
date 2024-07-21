@@ -1,39 +1,39 @@
 [
     {
-        "model": "YOLO Model 1",
-        "precision": 0.85,
-        "recall": 0.80,
-        "map50": 0.75,
-        "map50_95": 0.70,
-        "iou": 0.65,
-        "epochs": 100
+        "model": "YOLO-v8-obb PT v0",
+        "precision": 0.9252,
+        "recall": 0.8919,
+        "map50": 0.9447,
+        "map50_95": 0.6321,
+        "iou": 0,
+        "epochs": 50
     },
     {
-        "model": "YOLO Model 2",
-        "precision": 0.87,
-        "recall": 0.82,
-        "map50": 0.77,
-        "map50_95": 0.72,
-        "iou": 0.67,
-        "epochs": 120
+        "model": "YOLO-v8 PT",
+        "precision": 0.9002,
+        "recall": 0.8297,
+        "map50": 0.8902,
+        "map50_95": 0.5532,
+        "iou": 0,
+        "epochs": 50
     },
     {
-        "model": "YOLO Model 3",
-        "precision": 0.89,
-        "recall": 0.83,
-        "map50": 0.78,
-        "map50_95": 0.73,
-        "iou": 0.68,
-        "epochs": 130
+        "model": "YOLO-v5-NU",
+        "precision": 0.8990,
+        "recall": 0.8106,
+        "map50": 0.8723,
+        "map50_95": 0.5515,
+        "iou": 0,
+        "epochs": 50
     },
     {
-        "model": "YOLO Model 4",
-        "precision": 0.88,
-        "recall": 0.84,
-        "map50": 0.76,
-        "map50_95": 0.74,
-        "iou": 0.69,
-        "epochs": 110
+        "model": "YOLO-v6",
+        "precision": 0.8791,
+        "recall": 0.7906,
+        "map50": 0.8468,
+        "map50_95": 0.5289,
+        "iou": 0,
+        "epochs": 50
     },
     {
         "model": "D2Go Model",
@@ -42,6 +42,6 @@
         "map50": 0.80,
         "map50_95": 0.75,
         "iou": 0.70,
-        "epochs": 150
+        "epochs": 1000
     }
 ]

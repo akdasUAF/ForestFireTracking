@@ -64,7 +64,10 @@ tr:hover {
 #uploadForm {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  background: #ececec;
+  padding: 0px 10px; 
+  border-radius: 3px;
   margin: 20px;
 }
 
@@ -101,12 +104,12 @@ tr:hover {
 
 #videoFrames {
   display: flex;
-  justify-content: center;
+  flex-direction: column; 
   align-items: center;
-  margin: 0px;
+  margin: 0;
 }
 
-#stableFrames {
+#stableFrames, #yoloFrames {
   width: 95%;
   object-fit: cover;
 }

@@ -15,7 +15,7 @@
         <label for="video">Upload Video:</label>
         <input type="file" id="video" name="video" accept="video/*" />
         <label for="sizeFactor">Frame Size Factor:</label>
-        <input type="number" id="sizeFactor" name="sizeFactor" />
+        <input type="number" id="sizeFactor" name="sizeFactor" value="1"/>
       </div>
       <div class="form-group">
         <label for="cameraStable">Is the camera stable?</label>
@@ -30,9 +30,10 @@
     </form>
     <div id="videoFrames">
       <img id="stableFrames" alt="Motion" />
+      <img id="yoloFrames" alt="Yolo" />
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
   </body>
 </html>
