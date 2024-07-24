@@ -1,0 +1,23 @@
+1.	Dataset Download 
+		!curl -L "https://app.roboflow.com/ds/G8gLW0nKDU?key=rbez3aDq1X" > roboflow.zip; unzip roboflow.zip; rm roboflow.zip 
+
+Ensure trial.py file is present in same folder as the images
+else change these paths in trial.py
+
+register_coco_instances(
+    "Fire_train", {}, r"path\to\your\training_json_annotations", "path\to\your\train images folder")
+
+register_coco_instances(
+    "Fire_test", {}, r"path\to\your\test_json_annotation", "path\to\your\test images folder")
+
+register_coco_instances(
+    "Fire_valid", {}, r"path\to\your\valid_json_annotation"", "path\to\your\test images folder")
+
+
+
+2.	Install detectron2
+
+https://detectron2.readthedocs.io/en/latest/tutorials/install.html
+
+
+
