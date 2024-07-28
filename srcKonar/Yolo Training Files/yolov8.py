@@ -9,7 +9,7 @@ model = YOLO("yolov8n.pt")
 model.info()
 
 
-results = model.train(data="/content/data.yaml",
+results = model.train(data="data.yaml",
                       epochs=50,
                       imgsz=640,
                       # close_mosaic=3,
