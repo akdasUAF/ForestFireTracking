@@ -7,10 +7,12 @@ from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, request, jsonify
 from fire_flow import fire_pixel_segmentation, fire_flow
 from smoke_flow import smoke_pixel_segmentation, smoke_flow
-from yolo_detection import run_yolo
+from yolo_detection import run_yolo, load_model
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+load_model()
 
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -61,15 +63,24 @@ def handle_upload():
         thread2.start()
         thread1.join()
         thread2.join()
+        os.unlink(video_path)
+
         return jsonify({'result': "Video successfully processed"})
     elif is_camera_stable:
         process_stable_camera(video_path)
+        os.unlink(video_path)
+
         return jsonify({'result': "Video successfully processed"})
     elif run_yolo_detection:
         process_yolo_detection(video_path)
+        os.unlink(video_path)
+
         return jsonify({'result': "Video successfully processed"})
     else:
+        os.unlink(video_path)
+
         return jsonify({'error': 'Error processing video'})
+    
 
 def process_stable_camera(video_path):
     global size_factor
@@ -109,7 +120,7 @@ def process_stable_camera(video_path):
         row3 = np.hstack((s_mask, smoke_frame))
 
         final_frame = np.vstack((row1, row2, row3))
-        # print(final_frame.shape)
+        print(final_frame.shape)
 
         _, buffer = cv2.imencode('.jpg', final_frame)
         img_str = base64.b64encode(buffer).decode('utf-8')
@@ -120,24 +131,17 @@ def process_stable_camera(video_path):
             break
     cap.release()
 
+
 def process_yolo_detection(video_path):
-    global size_factor
 
     cap = cv2.VideoCapture(video_path)
-    _, first_frame = cap.read()
-    height, width = first_frame.shape[:2]
-    new_width = width // size_factor
-    new_height = height // size_factor
-
 
     while cap.isOpened() and threads:
         ret, frame = cap.read()
         if not ret:
             break
 
-        im = cv2.resize(frame, (new_width, new_height))
-
-        yolo_frame = run_yolo(im)
+        yolo_frame = run_yolo(frame)
 
         _, buffer = cv2.imencode('.jpg', yolo_frame)
         img_str = base64.b64encode(buffer).decode('utf-8')
