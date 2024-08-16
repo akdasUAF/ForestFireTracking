@@ -15,7 +15,7 @@ def smoke_pixel_segmentation(image):
     
     return smoke_mask
 
-def smoke_flow(im, prev, smoke_mask, wind_dir, processed_frame):
+def smoke_flow(im, prev, smoke_mask, wind_dir, processed_frame, n=30):
     curr = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     
 #     pyr_scale, levels, winsize, iterations, poly_n, poly_sigma
@@ -44,7 +44,7 @@ def smoke_flow(im, prev, smoke_mask, wind_dir, processed_frame):
     wind_dir.append(np.degrees(avg_direction_angle))
         
     smoke_dir_nframes = None
-    if len(wind_dir) > 30:
+    if len(wind_dir) > n:
         smoke_dir_nframes = np.nanmean(wind_dir)
         wind_dir.pop(0)
     

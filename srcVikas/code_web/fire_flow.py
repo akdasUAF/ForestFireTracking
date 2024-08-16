@@ -37,7 +37,7 @@ def fire_pixel_segmentation(image):
     
     return fire_mask
 
-def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame):
+def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, m=180):
     
     centerX = []
     centerY = []
@@ -62,7 +62,7 @@ def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame):
     fireY.append(np.mean(centerY))
     
     endpoint_mframes = None
-    if len(fireX) > 180:
+    if len(fireX) > m:
         x = np.nanmean(fireX)
         y = np.nanmean(fireY)
         

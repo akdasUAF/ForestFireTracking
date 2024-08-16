@@ -20,7 +20,7 @@ UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 threads = True
-size_factor = 3
+size_factor = 1
 
 @socketio.on('stop_processing')
 def stop_stream():
