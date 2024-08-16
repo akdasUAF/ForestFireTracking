@@ -167,7 +167,7 @@ button:hover {
   margin-bottom: 70px;
 }
 
-#stableFrames, #yoloFrames {
+#stableFrames, #yoloFrames, #fireAnalysis {
   max-width: 100%;
   height: auto;
   border: 1px solid #ddd;

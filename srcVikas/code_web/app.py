@@ -1,5 +1,6 @@
 import os
 import cv2
+import math
 import numpy as np
 import base64
 from threading import Thread
@@ -8,6 +9,7 @@ from flask import Flask, render_template, request, jsonify
 from fire_flow import fire_pixel_segmentation, fire_flow
 from smoke_flow import smoke_pixel_segmentation, smoke_flow
 from yolo_detection import run_yolo, load_model
+from analysis import graph
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -86,41 +88,70 @@ def process_stable_camera(video_path):
     global size_factor
 
     cap = cv2.VideoCapture(video_path)
+    fps = math.ceil(cap.get(cv2.CAP_PROP_FPS))
+
     _, first_frame = cap.read()
     height, width = first_frame.shape[:2]
     new_width = width // size_factor
     new_height = height // size_factor
     first_frame = cv2.resize(first_frame, (new_width, new_height))
-    fire_frame = np.zeros_like(first_frame)
-    growth = []
+
+    # Fire Variables
+    areas = [0]
+    area_frame = np.zeros_like(first_frame)
     fireX = []
     fireY = []
+    path = []
+
+    # Smoke Variables
     prev = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
     wind_dir = []
+    smoke_dir = []
 
     while cap.isOpened() and threads:
         ret, frame = cap.read()
         if not ret:
             break
         im = cv2.resize(frame, (new_width, new_height))
-
+        processed_frame = im.copy()
+        
+        #######################################
         fire_mask = fire_pixel_segmentation(im)
-        area, fire_frame, contour_im = fire_flow(im, fire_mask, fire_frame, fireX, fireY)
-        growth.append(area)
-
+        area, new_area_frame, processed_frame, end_point = fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame)
+        area_frame = new_area_frame
+        
+        if end_point != None:
+            path.append(end_point)
+        
+        areas.append(area)
+        
+        #########################################
         smoke_mask = smoke_pixel_segmentation(im)
-        curr, smoke_frame = smoke_flow(im, prev, smoke_mask, wind_dir)
+        curr, processed_frame, smoke = smoke_flow(im, prev, smoke_mask, wind_dir, processed_frame)
         prev = curr
+        
+        if smoke != None:
+            smoke_dir.append(smoke)
+        
+        if len(path) > 2:
+            start_point = path[0]
+            end_point = path[-1]
+            cv2.arrowedLine(processed_frame, start_point, end_point, (0, 255, 0), 2, tipLength=0.5)
+            
+        # cv2.imshow('Frame', im)
+        
+        # cv2.imshow('Fire mask', fire_mask)
+        # cv2.imshow('Smoke mask', smoke_mask)
+        # cv2.imshow('Fire flow', processed_frame)
 
         f_mask = cv2.cvtColor(fire_mask, cv2.COLOR_GRAY2BGR)
         s_mask = cv2.cvtColor(smoke_mask, cv2.COLOR_GRAY2BGR)
 
         row1 = np.hstack((im, f_mask))  
-        row2 = np.hstack((contour_im, fire_frame))
-        row3 = np.hstack((s_mask, smoke_frame))
+        row2 = np.hstack((s_mask, processed_frame))
 
-        final_frame = np.vstack((row1, row2, row3))
-        print(final_frame.shape)
+        final_frame = np.vstack((row1, row2))
+        # print(final_frame.shape)
 
         _, buffer = cv2.imencode('.jpg', final_frame)
         img_str = base64.b64encode(buffer).decode('utf-8')
@@ -129,7 +160,23 @@ def process_stable_camera(video_path):
 
         if cv2.waitKey(1) & 0xFF == 27:
             break
+    
     cap.release()
+
+    if(len(areas) > 1):
+        points = []
+        seen = set()
+
+        for item in path:
+            if item not in seen:
+                points.append(item)
+                seen.add(item)
+
+        frame_numbers = np.arange(len(areas))  
+        time_seconds = frame_numbers / fps
+        graph_str = graph(time_seconds, areas, smoke_dir, points)
+
+        socketio.emit('analysis', graph_str)
 
 
 def process_yolo_detection(video_path):
@@ -150,6 +197,7 @@ def process_yolo_detection(video_path):
 
         if cv2.waitKey(1) & 0xFF == 27:
             break
+
     cap.release()
 
 if __name__ == '__main__':

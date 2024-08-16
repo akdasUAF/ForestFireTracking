@@ -37,19 +37,18 @@ def fire_pixel_segmentation(image):
     
     return fire_mask
 
-def fire_flow(image, fire_mask, fire_frame, fireX, fireY):
+def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame):
     
-    area = 0
     centerX = []
     centerY = []
     contours, _ = cv2.findContours(fire_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
-    contour_image = image.copy()
-    cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2)  
+    cv2.drawContours(processed_frame, contours, -1, (0, 0, 255), 2) 
     
     for contour in contours:
-        area += cv2.contourArea(contour)
         # Compute the moments of the contour
+        area = cv2.contourArea(contour)
+
         M = cv2.moments(contour)
         if M["m00"] != 0 and area > 100:
             # Calculate the center of the contour
@@ -62,14 +61,26 @@ def fire_flow(image, fire_mask, fire_frame, fireX, fireY):
     fireX.append(np.mean(centerX))
     fireY.append(np.mean(centerY))
     
+    endpoint_mframes = None
     if len(fireX) > 180:
         x = np.nanmean(fireX)
         y = np.nanmean(fireY)
         
         if np.isfinite(x) and np.isfinite(y):
-            cv2.circle(fire_frame, (int(x), int(y)), 1, (255, 255, 255), -1) 
-        
+            endpoint_mframes = (int(x), int(y))
+ 
         fireX.pop(0)
         fireY.pop(0)
+
+
+    total_area = 0
+    cv2.drawContours(area_frame, contours, -1, (0, 0, 255), -1) 
+    binary_image = cv2.cvtColor(area_frame, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(binary_image, 50, 255, cv2.THRESH_BINARY)
     
-    return area, fire_frame, contour_image
+    area_contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in area_contours:
+        total_area += cv2.contourArea(contour)  
+    
+    return total_area, area_frame, processed_frame, endpoint_mframes

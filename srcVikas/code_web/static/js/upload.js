@@ -3,7 +3,9 @@ $(document).ready(function () {
     event.preventDefault();
     var formData = new FormData(document.getElementById("uploadForm"));
 
-    $("stableFrames").attr("src", "");
+    $("#stableFrames").attr("src", "");
+    $("#yoloFrames").attr("src", "");
+    $("#fireAnalysis").attr("src", "");
 
     $.ajax({
       url: "/upload",
@@ -13,25 +15,22 @@ $(document).ready(function () {
       processData: false,
       success: function (response) {
         if (response.error) {
-          $("#videoFrames").html("<p>Error: " + response.error + "</p>");
+          $("#logs").innerText = response.error;
         } else {
-          $("#videoFrames").html("<p>" + response.result + "</p>");
+          $("#logs").innerText = response.result;
         }
-
         // Is there any better way of refreshing the socket connection!
-        setTimeout(function () {
-          location.reload();
-        }, 2000);
+        // setTimeout(function () {
+        //   location.reload();
+        // }, 2000);
       },
       error: function () {
-        $("#videoFrames").html(
-          "<p>Error uploading video. Please try again.</p>"
-        );
+        $("#logs").innerText = "Error uploading video. Please try again.";
 
         // Is there any better way of refreshing the socket connection!
-        setTimeout(function () {
-          location.reload();
-        }, 2000);
+        // setTimeout(function () {
+        //   location.reload();
+        // }, 2000);
       },
     });
   });
@@ -43,9 +42,9 @@ $(document).ready(function () {
     socket.emit("stop_processing");
 
     // Is there any better way of refreshing the socket connection!
-    setTimeout(function () {
-      location.reload();
-    }, 2000);
+    // setTimeout(function () {
+    //   location.reload();
+    // }, 2000);
   });
 
   socket.on("stable_update", function (data) {
@@ -56,11 +55,7 @@ $(document).ready(function () {
     $("#yoloFrames").attr("src", "data:image/png;base64," + data);
   });
 
-  socket.on("metrics", function (data) {
-    $("#metrics").attr(
-      "src",
-      "http://localhost:5000/static/uploads/metrics.png"
-    );
-    $("#output").html("<p>Processing complete. Metrics generated.</p>");
+  socket.on("analysis", function (data) {
+    $("#fireAnalysis").attr("src", "data:image/png;base64," + data);
   });
 });

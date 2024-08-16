@@ -15,9 +15,8 @@ def smoke_pixel_segmentation(image):
     
     return smoke_mask
 
-def smoke_flow(image, prev, smoke_mask, wind_dir):
-    smoke_frame = image.copy()
-    curr = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def smoke_flow(im, prev, smoke_mask, wind_dir, processed_frame):
+    curr = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     
 #     pyr_scale, levels, winsize, iterations, poly_n, poly_sigma
     flow = cv2.calcOpticalFlowFarneback(prev, curr, None, 
@@ -28,27 +27,25 @@ def smoke_flow(image, prev, smoke_mask, wind_dir):
     avgy = []
      
     step = 15
-    for y in range(0, smoke_frame.shape[0], step):
-        for x in range(0, smoke_frame.shape[1], step):
+    for y in range(0, processed_frame.shape[0], step):
+        for x in range(0, processed_frame.shape[1], step):
             if smoke_mask[y, x] > 0:
                 fx, fy = flow[y, x]
                 flow_magnitude = np.sqrt(fx**2 + fy**2)
                 
-                if flow_magnitude > 0.2:
+                if flow_magnitude > 0.5:
                     avgx.append(fx)
                     avgy.append(fy)
 
                     end_point = (int(x + fx), int(y + fy))
-                    cv2.arrowedLine(smoke_frame, (x, y), end_point, (255, 0, 0), 2, tipLength=3)
+                    cv2.arrowedLine(processed_frame, (x, y), end_point, (255, 0, 0), 2, tipLength=3)
 
     avg_direction_angle = np.arctan2(np.mean(avgy), np.mean(avgx))
     wind_dir.append(np.degrees(avg_direction_angle))
         
+    smoke_dir_nframes = None
     if len(wind_dir) > 30:
-        avg_direction = np.nanmean(wind_dir)
+        smoke_dir_nframes = np.nanmean(wind_dir)
         wind_dir.pop(0)
-        
-        cv2.putText(smoke_frame, f'Wind Direction: {avg_direction:.2f}', (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 1, cv2.LINE_AA)
-        
     
-    return curr, smoke_frame
+    return curr, processed_frame, smoke_dir_nframes
