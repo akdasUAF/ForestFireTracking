@@ -207,4 +207,40 @@ footer {
   th, td {
       padding: 8px 10px;
   }
+  
+}
+
+/* Team page styles */
+.column {
+  float: left;
+  width: 50%;
+}
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.team-member {
+  background-color: #b9cfec;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  padding: 20px;
+  width: 400px;
+  text-align: center;
+}
+.team-member img {
+    border-radius: 50%;
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+}
+.team-member h3 {
+    margin: 10px 0;
+    font-size: 20px;
+    color: #333;
+}
+.team-member p {
+    font-size: 14px;
+    color: #313030;
 }

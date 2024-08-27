@@ -12,12 +12,18 @@
         <nav>
             <ul>
                 <li><a href="/">Home</a></li>
+                <li><a href="http://137.229.25.190:8000">Classifier</a></li>
                 <li><a href="/upload">Wildfire</a></li>
                 <li><a href="/models">Model</a></li>
+                <li><a href="/team">Team</a></li>
             </ul>
         </nav>
     </header>
     <main class="container">
+        <section class="card" onclick="window.location.href='http://137.229.25.190:8000'">
+            <h2>Wildfire Detection Classifier</h2>
+            <p>Upload an image to detect forest fires. (Original research)</p>
+        </section>
         <section class="card" onclick="window.location.href='/upload'">
             <h2>Wildfire Management System</h2>
             <p>Upload and analyze videos to detect forest fire and smoke.</p>
@@ -25,6 +31,10 @@
         <section class="card" onclick="window.location.href='/models'">
             <h2>Model Metrics</h2>
             <p>View and sort model performance metrics.</p>
+        </section>
+        <section class="card" onclick="window.location.href='/team'">
+            <h2>Team Introduction</h2>
+            <p>Get to know about our team members.</p>
         </section>
     </main>
     <footer>
