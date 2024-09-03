@@ -13,15 +13,15 @@
     <header>
       <h1>Forest Fire and Smoke Research</h1>
       <nav>
-          <ul>
-              <li><a href="/">Home</a></li>
-              <li><a href="http://137.229.25.190:8000">Classifier</a></li>
-              <li><a href="/upload">Wildfire</a></li>
-              <li><a href="/models">Model</a></li>
-              <li><a href="/team">Team</a></li>
-          </ul>
-      </nav>
-  </header>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="http://137.229.25.190:8000">Classifier</a></li>
+          <li><a href="/upload">Wildfire</a></li>
+          <li><a href="/models">Model</a></li>
+          <li><a href="/team">Team</a></li>
+        </ul>
+    </nav>
+    </header>
     <main class="container">
       <h2>Wildfire Management System</h2>
       <form id="uploadForm" enctype="multipart/form-data">
@@ -30,7 +30,7 @@
           <input type="file" id="video" name="video" accept="video/*" />
         </div>
         <div class="form-group">
-          <label for="sizeFactor">Frame Size Factor:</label>
+          <label for="sizeFactor">Divide the video dimensions by factor: (Width: 600-800 is preferred)</label>
           <input
             type="number"
             id="sizeFactor"
@@ -39,6 +39,28 @@
             min="0.1"
             max="2"
             step="0.1"
+          />
+          <label for="nFrames">Frames to be average for Smoke direction:</label>
+          <input
+            type="number"
+            id="nFrames"
+            name="nFrames"
+            value="30"
+            min="0"
+            max="300"
+            step="10"
+          />
+          <label for="mFrames"
+            >Frames to be average for Fire Spread direction:</label
+          >
+          <input
+            type="number"
+            id="mFrames"
+            name="mFrames"
+            value="180"
+            min="0"
+            max="300"
+            step="10"
           />
         </div>
         <div class="form-group">
