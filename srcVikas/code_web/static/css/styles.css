@@ -213,7 +213,7 @@ footer {
 /* Team page styles */
 .column {
   float: left;
-  width: 50%;
+  width: 25%;
 }
 .row:after {
   content: "";
@@ -226,13 +226,13 @@ footer {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 20px;
   padding: 20px;
-  width: 400px;
+  width: 250px;
   text-align: center;
 }
 .team-member img {
     border-radius: 50%;
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
     object-fit: cover;
 }
 .team-member h3 {

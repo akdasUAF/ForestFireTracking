@@ -41,6 +41,10 @@ def upload():
 def models():
     return render_template('models.html')
 
+@app.route('/team')
+def team():
+    return render_template('team.html')
+
 @app.route('/upload', methods=['POST'])
 def handle_upload():
     if 'video' not in request.files:
