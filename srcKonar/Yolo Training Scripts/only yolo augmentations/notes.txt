@@ -1,0 +1,2 @@
+For this part we are checking the training metrics when with only yolo augmentations on our original dataset .
+so the dataset to be used is the no augmented dataset
