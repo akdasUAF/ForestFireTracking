@@ -1,18 +1,20 @@
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 
-def graph(time_seconds, areas, smoke_dir, points):
-    fig = plt.figure(figsize=(16, 12))
-    gs = fig.add_gridspec(2, 2, width_ratios=[2, 1], hspace=0.3, wspace=0.3)
+def graph(time_seconds, areas, smoke_dir, points, object_distance, frame_width, sensor_width, focal_length):
+    fig = plt.figure(figsize=(16, 16))
+    gs = fig.add_gridspec(3, 2, width_ratios=[2, 1], hspace=0.5, wspace=0.3)
 
-    # First subplot: Cumulative Area over Time
+    # First subplot: Cumulative Actual Area over Time
     ax1 = fig.add_subplot(gs[0, 0])
-    ax1.plot(time_seconds, areas, label='Burned Area', color='firebrick')
+    ax1.plot(time_seconds, areas, label='Actual Area (m^2)', color='firebrick')
     ax1.set_xlabel('Time (seconds)')
-    ax1.set_ylabel('Cumulative Area (pixel units)')
-    ax1.set_title('Cumulative Burned Area Over Time')
+    ax1.set_ylabel('Area (m^2)')
+    ax1.set_title('Actual Burned Area Over Time')
     ax1.grid(True)
     ax1.legend()
 
@@ -51,6 +53,21 @@ def graph(time_seconds, areas, smoke_dir, points):
 
     # plt.tight_layout()
     # plt.savefig('forest_fire_analysis1.png', dpi=300, bbox_inches='tight')
+    '''
+    # Fifth subplot: actual fire area over time
+    def calculate_gsd(object_distance, frame_width, sensor_width, focal_length):
+        return (sensor_width * object_distance) / (frame_width * focal_length)
+    meters_per_pixel = calculate_gsd(object_distance, frame_width, sensor_width, focal_length)
+    actual_areas = [area * (meters_per_pixel ** 2) for area in areas]
+
+    ax5 = fig.add_subplot(gs[2, 0])  # 3rd row, left column
+    ax5.plot(time_seconds, actual_areas, label='Actual Area (m^2)', color='green')
+    ax5.set_xlabel('Time (seconds)')
+    ax5.set_ylabel('Cumulative Area (m^2)')
+    ax5.set_title('Cumulative Actual Burned Area Over Time')
+    ax5.grid(True)
+    ax5.legend()
+    '''
 
     buf = BytesIO()
     plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')

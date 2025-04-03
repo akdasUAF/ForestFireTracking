@@ -37,50 +37,56 @@ def fire_pixel_segmentation(image):
     
     return fire_mask
 
-def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, m):
-    
+def calculate_gsd(object_distance, frame_width, sensor_width, focal_length):
+
+    gsd = (sensor_width * object_distance) / (frame_width * focal_length)
+    return gsd  # Returns meters per pixel
+
+def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, m, object_distance, frame_width, sensor_width, focal_length):
+    # Get the ground sampling distance (meters per pixel)
+    meters_per_pixel = calculate_gsd(object_distance, frame_width, sensor_width, focal_length)
+
     centerX = []
     centerY = []
     contours, _ = cv2.findContours(fire_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
-    cv2.drawContours(processed_frame, contours, -1, (0, 0, 255), 2) 
+    cv2.drawContours(processed_frame, contours, -1, (0, 0, 255), 2)  # Draw fire contours
     
     for contour in contours:
-        # Compute the moments of the contour
         area = cv2.contourArea(contour)
 
         M = cv2.moments(contour)
-        if M["m00"] != 0 and area > 100:
-            # Calculate the center of the contour
+        if M["m00"] != 0 and area > 50:  # Ignore small noise areas
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
             
             centerX.append(cX)
             centerY.append(cY)
             
+    # Track fire centroid movement
     fireX.append(np.mean(centerX))
     fireY.append(np.mean(centerY))
     
-    endpoint_mframes = None
     if len(fireX) > m:
         x = np.nanmean(fireX)
         y = np.nanmean(fireY)
-        
-        if np.isfinite(x) and np.isfinite(y):
-            endpoint_mframes = (int(x), int(y))
- 
+        endpoint_mframes = (int(x), int(y)) if np.isfinite(x) and np.isfinite(y) else None
         fireX.pop(0)
         fireY.pop(0)
+    else:
+        endpoint_mframes = None
 
+    # Total pixel area in THIS FRAME ONLY! Do not accumulate them...
+    current_frame_pixels = sum(cv2.contourArea(contour) for contour in contours)
 
-    total_area = 0
-    cv2.drawContours(area_frame, contours, -1, (0, 0, 255), -1) 
-    binary_image = cv2.cvtColor(area_frame, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(binary_image, 50, 255, cv2.THRESH_BINARY)
-    
-    area_contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Convert to real-world area (in m^2)
+    current_actual_area = current_frame_pixels * (meters_per_pixel ** 2)
 
-    for contour in area_contours:
-        total_area += cv2.contourArea(contour)  
-    
-    return total_area, area_frame, processed_frame, endpoint_mframes
+    # Update cumulative area_frame
+    cv2.drawContours(area_frame, contours, -1, (0, 0, 255), -1)
+
+    # Display current frame area (not cumulative!)
+    cv2.putText(processed_frame, f'Current Fire Area: {current_actual_area:.2f} m^2',
+                (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
+    return current_actual_area, area_frame, processed_frame, endpoint_mframes

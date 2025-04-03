@@ -63,6 +63,39 @@
             step="10"
           />
         </div>
+        
+        <div class="form-group">
+          <label for="objectDistance">Estimated Distance to Fire (meters) (Could be the same as camera height):</label>
+          <input type="number" id="objectDistance" name="objectDistance" value="" min="0.1" step="0.1" />
+        </div>
+
+
+        <div class="form-group">
+          <label for="droneModel">Select Drone Model (or enter manually):</label>
+          <select id="droneModel" name="droneModel">
+              <option value="DJI_Mini_3">DJI Mini 3 Pro</option>
+              <option value="DJI_Mavic_3">DJI Mavic 3</option>
+              <option value="DJI_Phantom_4">DJI Phantom 4</option>
+              <option value="manual">Enter Manually</option>
+          </select>
+        </div>
+
+
+        <div id="manualSpecs" style="display: none;">
+          <label for="sensorWidth">Sensor Width (mm):</label>
+          <input type="number" id="sensorWidth" name="sensorWidth" step="0.01" min="1" value="9.6">
+          
+          <label for="focalLength">Focal Length (mm):</label>
+          <input type="number" id="focalLength" name="focalLength" step="0.01" min="1" value="3.92">
+        </div>
+        
+        <script>
+        document.getElementById("droneModel").addEventListener("change", function() {
+            document.getElementById("manualSpecs").style.display = 
+                (this.value === "manual") ? "block" : "none";
+        });
+        </script>
+      
         <div class="form-group">
           <label for="cameraStable">
             <input type="checkbox" id="cameraStable" name="cameraStable" />

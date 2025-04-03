@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, request, jsonify
 from fire_flow import fire_pixel_segmentation, fire_flow
 from smoke_flow import smoke_pixel_segmentation, smoke_flow
-from yolo_detection import run_yolo, load_model
+from yolo_detection import run_yolo, load_model, run_yolo_fire_mask
 from analysis import graph
 
 app = Flask(__name__)
@@ -62,12 +62,28 @@ def handle_upload():
     size_factor = int(request.form.get('sizeFactor'))
     mFrames = int(request.form.get('mFrames'))
     nFrames = int(request.form.get('nFrames'))
-    
+
+    # camera_height = float(request.form.get('cameraHeight', 15))  # Default to 15 m
+    object_distance = float(request.form.get('objectDistance', 15))  # Default estimate to camera height
+    drone_model = request.form.get('droneModel')
+    drone_specs = {
+        "DJI_Mini_3": {"sensor_width": 9.6, "focal_length": 3.92},
+        "DJI_Mavic_3": {"sensor_width": 17.3, "focal_length": 24.0},
+        "DJI_Phantom_4": {"sensor_width": 6.17, "focal_length": 20.0},
+    }
+    if drone_model in drone_specs:
+        sensor_width = drone_specs[drone_model]["sensor_width"]
+        focal_length = drone_specs[drone_model]["focal_length"]
+    else:  # If user selects "manual"
+        sensor_width = float(request.form.get("sensorWidth", 9.6))
+        focal_length = float(request.form.get("focalLength", 3.92))
+
+
     is_camera_stable = request.form.get('cameraStable') == 'on'
     run_yolo_detection = request.form.get('runYolo') == 'on'
     
     if is_camera_stable and run_yolo_detection:
-        thread1 = Thread(target=process_stable_camera, args=(video_path,))
+        thread1 = Thread(target=process_stable_camera, args=(video_path, object_distance, sensor_width, focal_length))
         thread2 = Thread(target=process_yolo_detection, args=(video_path,))
         thread1.start()
         thread2.start()
@@ -77,7 +93,7 @@ def handle_upload():
 
         return jsonify({'result': "Video successfully processed"})
     elif is_camera_stable:
-        process_stable_camera(video_path)
+        process_stable_camera(video_path, object_distance, sensor_width, focal_length)
         os.unlink(video_path)
 
         return jsonify({'result': "Video successfully processed"})
@@ -92,17 +108,18 @@ def handle_upload():
         return jsonify({'error': 'Error processing video'})
     
 
-def process_stable_camera(video_path):
+def process_stable_camera(video_path, object_distance, sensor_width, focal_length):
     global size_factor
 
     cap = cv2.VideoCapture(video_path)
     fps = math.ceil(cap.get(cv2.CAP_PROP_FPS))
+    
 
     _, first_frame = cap.read()
     height, width = first_frame.shape[:2]
-    new_width = width // size_factor
-    new_height = height // size_factor
-    first_frame = cv2.resize(first_frame, (new_width, new_height))
+    frame_width = width // size_factor
+    frame_height = height // size_factor
+    first_frame = cv2.resize(first_frame, (frame_width, frame_height))
 
     # Fire Variables
     areas = [0]
@@ -120,12 +137,20 @@ def process_stable_camera(video_path):
         ret, frame = cap.read()
         if not ret:
             break
-        im = cv2.resize(frame, (new_width, new_height))
+        im = cv2.resize(frame, (frame_width, frame_height))
         processed_frame = im.copy()
         
         #######################################
         fire_mask = fire_pixel_segmentation(im)
-        area, new_area_frame, processed_frame, end_point = fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, mFrames)
+        fire_mask_yolo = run_yolo_fire_mask(im)
+
+        alpha = 0.6
+        fire_mask = cv2.addWeighted(fire_mask.astype(np.float32), alpha,
+                                    fire_mask_yolo.astype(np.float32), 1 - alpha, 0)
+        _, fire_mask = cv2.threshold(fire_mask, 127, 255, cv2.THRESH_BINARY)
+        fire_mask = fire_mask.astype(np.uint8)
+
+        area, new_area_frame, processed_frame, end_point = fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, mFrames, object_distance, frame_width, sensor_width, focal_length)
         area_frame = new_area_frame
         
         if end_point != None:
@@ -191,7 +216,8 @@ def process_stable_camera(video_path):
 
         frame_numbers = np.arange(len(areas))  
         time_seconds = frame_numbers / fps
-        graph_str = graph(time_seconds, areas, smoke_dir, points)
+        #graph(time_seconds, areas, smoke_dir, points, object_distance, frame_width)
+        graph_str = graph(time_seconds, areas, smoke_dir, points, object_distance, frame_width, sensor_width, focal_length)
 
         socketio.emit('analysis', graph_str)
 
@@ -218,4 +244,4 @@ def process_yolo_detection(video_path):
     cap.release()
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=5001, debug=True, allow_unsafe_werkzeug=True)
