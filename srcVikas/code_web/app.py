@@ -65,6 +65,7 @@ def handle_upload():
 
     # camera_height = float(request.form.get('cameraHeight', 15))  # Default to 15 m
     object_distance = float(request.form.get('objectDistance', 15))  # Default estimate to camera height
+    tilt_angle = float(request.form.get('tiltAngle', 0))  # default = 0 degrees (top-down)
     drone_model = request.form.get('droneModel')
     drone_specs = {
         "DJI_Mini_3": {"sensor_width": 9.6, "focal_length": 3.92},
@@ -83,7 +84,7 @@ def handle_upload():
     run_yolo_detection = request.form.get('runYolo') == 'on'
     
     if is_camera_stable and run_yolo_detection:
-        thread1 = Thread(target=process_stable_camera, args=(video_path, object_distance, sensor_width, focal_length))
+        thread1 = Thread(target=process_stable_camera, args=(video_path, object_distance, sensor_width, focal_length, tilt_angle))
         thread2 = Thread(target=process_yolo_detection, args=(video_path,))
         thread1.start()
         thread2.start()
@@ -93,7 +94,7 @@ def handle_upload():
 
         return jsonify({'result': "Video successfully processed"})
     elif is_camera_stable:
-        process_stable_camera(video_path, object_distance, sensor_width, focal_length)
+        process_stable_camera(video_path, object_distance, sensor_width, focal_length, tilt_angle)
         os.unlink(video_path)
 
         return jsonify({'result': "Video successfully processed"})
@@ -108,7 +109,7 @@ def handle_upload():
         return jsonify({'error': 'Error processing video'})
     
 
-def process_stable_camera(video_path, object_distance, sensor_width, focal_length):
+def process_stable_camera(video_path, object_distance, sensor_width, focal_length, tilt_angle):
     global size_factor
 
     cap = cv2.VideoCapture(video_path)
@@ -150,7 +151,7 @@ def process_stable_camera(video_path, object_distance, sensor_width, focal_lengt
         _, fire_mask = cv2.threshold(fire_mask, 127, 255, cv2.THRESH_BINARY)
         fire_mask = fire_mask.astype(np.uint8)
 
-        area, new_area_frame, processed_frame, end_point = fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, mFrames, object_distance, frame_width, sensor_width, focal_length)
+        area, new_area_frame, processed_frame, end_point = fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, mFrames, object_distance, frame_width, sensor_width, focal_length, tilt_angle)
         area_frame = new_area_frame
         
         if end_point != None:

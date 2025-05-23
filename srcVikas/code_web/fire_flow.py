@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import math
 # Seven Rules for Segmentation -> https://core.ac.uk/download/pdf/55305301.pdf
 def fire_pixel_segmentation(image):
     fire_mask = np.zeros_like(image[:, :, 0])
@@ -37,14 +37,16 @@ def fire_pixel_segmentation(image):
     
     return fire_mask
 
-def calculate_gsd(object_distance, frame_width, sensor_width, focal_length):
-
-    gsd = (sensor_width * object_distance) / (frame_width * focal_length)
+def calculate_gsd(object_distance, frame_width, sensor_width, focal_length, tilt_angle_deg):
+    # Convert degrees to radians
+    theta_rad = math.radians(tilt_angle_deg)
+    # Adjust GSD for oblique angle
+    gsd = (sensor_width * object_distance * math.cos(theta_rad)) / (frame_width * focal_length)
     return gsd  # Returns meters per pixel
 
-def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, m, object_distance, frame_width, sensor_width, focal_length):
+def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, m, object_distance, frame_width, sensor_width, focal_length, tilt_angle_deg):
     # Get the ground sampling distance (meters per pixel)
-    meters_per_pixel = calculate_gsd(object_distance, frame_width, sensor_width, focal_length)
+    meters_per_pixel = calculate_gsd(object_distance, frame_width, sensor_width, focal_length, tilt_angle_deg)
 
     centerX = []
     centerY = []
@@ -88,5 +90,8 @@ def fire_flow(fire_mask, area_frame, fireX, fireY, processed_frame, m, object_di
     # Display current frame area (not cumulative!)
     cv2.putText(processed_frame, f'Current Fire Area: {current_actual_area:.2f} m^2',
                 (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+    # Show the camera tilting angle
+    cv2.putText(processed_frame, f'Tilt Angle: {tilt_angle_deg} deg', (50, 110),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
 
     return current_actual_area, area_frame, processed_frame, endpoint_mframes
