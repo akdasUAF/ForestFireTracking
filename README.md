@@ -69,6 +69,9 @@ Processed frames are JPEG-encoded + Base64 and emitted to the frontend via the `
 ---
 
 ## Project Structure (Mapped to the Workflow)
+
+The website code files are under `srcVikas/code_web`:
+
 - `app.py`: web routes, video upload, thread orchestration, Socket.IO streaming (main entrypoint)
 - `yolo_detection.py`: YOLO-OBB model loading and inference; supports OBB overlay and OBB-derived binary masks
 - `fire_flow.py`: fire pixel segmentation, real-world area estimation, and fire spread tracking
