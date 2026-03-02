@@ -9,7 +9,7 @@ global_model = None
 def load_model():
     global global_model
     if global_model is None:
-        global_model = YOLO('../models/yoloSmall.pt')
+        global_model = YOLO('../models/yolo11-obb_best.pt')
         
         if torch.cuda.is_available():
             global_model.to('cuda')
