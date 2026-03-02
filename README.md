@@ -88,12 +88,12 @@ Processed frames are JPEG-encoded + Base64 and emitted to the frontend via the `
 
 ---
 
-## Quick Start (Example)
+## Quick Start
 - Run `app.py`, it opens the website. Then click on the "Wildfire Management System" button to navigate to `/upload` to submit a video for analysis.
 - Socket.IO streams frames and analytics plots to the frontend in real time.
 
 ---
 
-## Notes (Engineering Considerations)
+## Notes
 - The stable-camera pipeline assumes limited camera motion. If the camera shakes strongly, consider video stabilization or camera-motion compensation; otherwise, optical flow and trajectory estimates can be degraded.
 - If stable analysis and YOLO detection run concurrently, ensure YOLO inference is thread-safe (e.g., use an inference lock or one model instance per thread) to avoid concurrency issues during initialization/fusion.
