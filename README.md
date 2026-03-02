@@ -89,7 +89,7 @@ Processed frames are JPEG-encoded + Base64 and emitted to the frontend via the `
 ---
 
 ## Quick Start (Example)
-- Run `app.py`, then visit `/` and navigate to `/upload` to submit a video for analysis.
+- Run `app.py`, it opens the website. Then click on the "Wildfire Management System" button to navigate to `/upload` to submit a video for analysis.
 - Socket.IO streams frames and analytics plots to the frontend in real time.
 
 ---
